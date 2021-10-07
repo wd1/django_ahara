@@ -1,0 +1,6 @@
+framework module Pods_Ahara {
+  umbrella header "Pods-Ahara-umbrella.h"
+
+  export *
+  module * { export * }
+}

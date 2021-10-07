@@ -1,0 +1,6 @@
+framework module VGSegment {
+  umbrella header "VGSegment-umbrella.h"
+
+  export *
+  module * { export * }
+}
