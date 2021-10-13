@@ -33,8 +33,8 @@ class SignInViewController: UIViewController {
         txtEmail.addDoneButtonOnKeyboard()
         txtPassword.addDoneButtonOnKeyboard()
         
-        //txtEmail.text = "+18572852661"
-        //txtPassword.text = "Admin@12345"
+        txtEmail.text = "+18572852661"
+        txtPassword.text = "Admin@12345"
     }
     
     @IBAction func onShowPassword(_ sender: Any) {
