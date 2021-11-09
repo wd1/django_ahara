@@ -1,0 +1,446 @@
+{% extends 'core/base.html' %}
+{% load static bootstrap4 %}
+
+{% block custom_style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/mdi-font/css/material-design-iconic-font.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/select2/select2.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/toastr/toastr.css' %}" media="all">
+    <style>
+        .table-data__tool .table-data__tool-right > a {
+            margin-right: 12px;
+        }
+        .switch.switch-default .switch-label,
+        .switch.switch-default .switch-handle{
+            border-color: lightgray;
+        }
+        .switch.switch-default .switch-label {
+            background-color: lightgray;
+        }
+        .table-responsive {
+            overflow-y: overlay;
+        }
+        .ingredient-input {
+            position: relative;
+        }
+        .tab-error {
+            border-bottom: 2px solid #dc3545;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    {% if item %}
+        Edit Recipe
+    {% else %}
+        Add Recipe
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-12 container">
+            <div class="row justify-content-between">
+                <h2>
+                    {% if item %}
+                        Edit Recipe
+                    {% else %}
+                        Add New Recipe
+                    {% endif %}
+                </h2>
+                <a class="btn btn-secondary" href="{% url 'core:recipe_list' %}">Back</a>
+            </div>
+        </div>
+        <div class="col-md-12 container">
+            <form id="user-form" method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item {% if form.errors %}tab-error{% endif %}">
+                        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#recipe" role="tab" aria-controls="recipe" aria-selected="true">Recipe</a>
+                    </li>
+                    <li class="nav-item {% if recipe_ingredient_formset.errors %}tab-error{% endif %}">
+                        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#ingredient" role="tab" aria-controls="ingredient" aria-selected="false">Ingredients</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#preparation" role="tab" aria-controls="preparation" aria-selected="false">Preparation</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#cook" role="tab" aria-controls="cook" aria-selected="false">Learn More</a>
+                    </li>
+                    <li class="nav-item {% if recipe_video_formset.errors %}tab-error{% endif %}">
+                        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#video" role="tab" aria-controls="video" aria-selected="false">Video</a>
+                    </li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="recipe" role="tabpanel" aria-labelledby="recipe-tab">
+                        {% bootstrap_field form.name %}
+                        {% bootstrap_field form.category %}
+                        {% bootstrap_field form.description %}
+                        {% bootstrap_field form.serving %}
+{#                        {% bootstrap_field form.max_number_of_people %}#}
+{#                        {% bootstrap_field form.calorie %}#}
+                        {% bootstrap_field form.prep_time %}
+                        {% bootstrap_field form.cooking_time %}
+                        {% bootstrap_field form.is_this_week %}
+                        {% bootstrap_field form.image %}
+                    </div>
+                    <div class="tab-pane fade" id="ingredient" role="tabpanel" aria-labelledby="ingredient-tab">
+                        {{ recipe_ingredient_formset.management_form }}
+                        <div class="table-responsive">
+                            <table class="table table-condensed table-sm dynamic-form-table" data-form-list="{{ recipe_ingredient_formset.prefix }}-prefix" id="recipe-ingredient-table">
+                                <thead>
+                                    <th>Ingredient</th>
+                                    <th>Unit</th>
+                                    <th>Nutrition</th>
+                                    <th>
+                                        <a class="float-right add-row" data-prefix="{{ recipe_ingredient_formset.prefix }}" title="Add New {{ recipe_ingredient_formset.0.address.label }}" style="font-size: 1.5em;">
+                                            <i class="fas fa-plus-octagon text-primary"></i>
+                                        </a>
+                                        <table class="dynamic-form-row-template">
+                                            <tbody class="d-none">
+                                            <tr class="dynamic-form mb-3">
+                                                <td class="p-0 px-1">
+                                                    {% bootstrap_field recipe_ingredient_formset.0.ingredient show_label=False form_group_class="form-group my-1" %}
+                                                </td>
+                                                <td class="p-0">
+                                                    {% bootstrap_field recipe_ingredient_formset.0.unit show_label=False form_group_class="form-group my-1" %}
+                                                </td>
+                                                <td class="p-0">
+                                                    <div class="form-group my-1 text-center">
+                                                        <button class="btn btn-block btn-nutrition">View</button>
+                                                    </div>
+                                                </td>
+                                                <td class="p-0">
+                                                    <a id="" href="javascript:void(0)" data-prefix="{{ recipe_ingredient_formset.prefix }}" title="Remove Current {{ recipe_ingredient_formset.0.ingredient.label }}" data-toggle="tooltip" class="delete-row float-right mx-2">
+                                                        <i class="fas fa-minus-octagon text-danger"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </th>
+                                </thead>
+                                <tbody class="dynamic-form-tbody">
+                                    {% for recipe_ingredient in recipe_ingredient_formset %}
+                                        <tr id="{{ recipe_ingredient.prefix }}-row" class="dynamic-form mb-3">
+                                            <td class="p-0 px-1">
+                                                {% bootstrap_field recipe_ingredient.ingredient show_label=False form_group_class="form-group my-1" %}
+                                            </td>
+                                            <td class="p-0">
+                                                {% bootstrap_field recipe_ingredient.unit show_label=False form_group_class="form-group my-1" %}
+                                            </td>
+                                            <td class="p-0">
+                                                <div class="form-group my-1 text-center">
+                                                    <button class="btn btn-info btn-nutrition" data-id="{{ recipe_ingredient.prefix }}">View</button>
+                                                </div>
+                                            </td>
+                                            <td class="p-0">
+                                                <div class="d-none">
+                                                    {{ recipe_ingredient.DELETE }}
+                                                    {% if recipe_ingredient.instance.from_database %}
+                                                        {{ recipe_ingredient.id }}
+                                                    {% endif %}
+                                                </div>
+                                                <a id="remove-{{ recipe_ingredient.prefix }}-row" href="javascript:void(0)" data-prefix="{{ recipe_ingredient_formset.prefix }}" title="Remove Current {{ recipe_ingredient.ingredient.label }}" data-toggle="tooltip" class="delete-row float-right mx-2">
+                                                    <i class="fas fa-minus-octagon text-danger"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="preparation" role="tabpanel" aria-labelledby="preparation-tab">
+                        {{ recipe_prep_formset.management_form }}
+                        <div class="table-responsive">
+                            <table class="table table-condensed table-sm dynamic-form-table" data-form-list="{{ recipe_prep_formset.prefix }}-prefix" id="recipe-prep-table">
+                                <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>
+                                        <a class="float-right add-row" data-prefix="{{ recipe_prep_formset.prefix }}" title="Add New {{ recipe_prep_formset.0.detail.label }}" data-toggle="tooltip" style="font-size: 1.5em;">
+                                            <i class="fas fa-plus-octagon text-primary"></i>
+                                        </a>
+                                        <table class="dynamic-form-row-template">
+                                            <tbody class="d-none">
+                                            <tr class="dynamic-form mb-3">
+                                                <td class="py-1">
+                                                    {% bootstrap_field recipe_prep_formset.0.detail show_label=False form_group_class="form-group my-1" %}
+                                                </td>
+                                                <td class="p-0">
+                                                    <a id="" href="javascript:void(0)" data-prefix="{{ recipe_prep_formset.prefix }}" title="Remove Current {{ recipe_prep_formset.0.detail.label }}" data-toggle="tooltip" class="delete-row float-right mx-2">
+                                                        <i class="fas fa-minus-octagon text-danger"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody class="dynamic-form-tbody">
+                                    {% for recipe_prep in recipe_prep_formset %}
+                                        <tr id="{{ recipe_prep.prefix }}-row" class="dynamic-form mb-3">
+                                            <td class="p-0 px-1">
+                                                {% bootstrap_field recipe_prep.detail show_label=False form_group_class="form-group my-1" %}
+                                            </td>
+                                            <td class="p-0">
+                                                <div class="d-none">
+                                                    {{ recipe_prep.DELETE }}
+                                                    {% if recipe_prep.instance.from_database %}
+                                                        {{ recipe_prep.id }}
+                                                    {% endif %}
+                                                </div>
+                                                <a id="remove-{{ recipe_prep.prefix }}-row" href="javascript:void(0)" data-prefix="{{ recipe_prep_formset.prefix }}" title="Remove Current {{ recipe_prep.detail.label }}" data-toggle="tooltip" class="delete-row float-right mx-2">
+                                                    <i class="fas fa-minus-octagon text-danger"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="cook" role="tabpanel" aria-labelledby="cook-tab">
+                        {% bootstrap_field learn_more_form.learn_more_title %}
+                        {% bootstrap_field learn_more_form.learn_more_desc %}
+                        {% comment %}{{ recipe_cook_formset.management_form }}
+                        <div class="table-responsive">
+                            <table class="table table-condensed table-sm dynamic-form-table" data-form-list="{{ recipe_cook_formset.prefix }}-prefix" id="recipe-cook-table">
+                                <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>
+                                        <a class="float-right add-row" data-prefix="{{ recipe_cook_formset.prefix }}" title="Add New {{ recipe_cook_formset.0.detail.label }}" data-toggle="tooltip" style="font-size: 1.5em;">
+                                            <i class="fas fa-plus-octagon text-primary"></i>
+                                        </a>
+                                        <table class="dynamic-form-row-template">
+                                            <tbody class="d-none">
+                                            <tr class="dynamic-form mb-3">
+                                                <td class="py-1">
+                                                    {% bootstrap_field recipe_cook_formset.0.detail show_label=False form_group_class="form-group my-1" %}
+                                                </td>
+                                                <td class="p-0">
+                                                    <a id="" href="javascript:void(0)" data-prefix="{{ recipe_cook_formset.prefix }}" title="Remove Current {{ recipe_cook_formset.0.detail.label }}" data-toggle="tooltip" class="delete-row float-right mx-2">
+                                                        <i class="fas fa-minus-octagon text-danger"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody class="dynamic-form-tbody">
+                                    {% for recipe_cook in recipe_cook_formset %}
+                                        <tr id="{{ recipe_cook.prefix }}-row" class="dynamic-form mb-3">
+                                            <td class="p-0 px-1">
+                                                {% bootstrap_field recipe_cook.detail show_label=False form_group_class="form-group my-1" %}
+                                            </td>
+                                            <td class="p-0">
+                                                <div class="d-none">
+                                                    {{ recipe_cook.DELETE }}
+                                                    {% if recipe_cook.instance.from_database %}
+                                                        {{ recipe_cook.id }}
+                                                    {% endif %}
+                                                </div>
+                                                <a id="remove-{{ recipe_cook.prefix }}-row" href="javascript:void(0)" data-prefix="{{ recipe_cook_formset.prefix }}" title="Remove Current {{ recipe_cook.detail.label }}" data-toggle="tooltip" class="delete-row float-right mx-2">
+                                                    <i class="fas fa-minus-octagon text-danger"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>{% endcomment %}
+                    </div>
+                    <div class="tab-pane fade" id="video" role="tabpanel" aria-labelledby="video-tab">
+                        {{ recipe_video_formset.management_form }}
+                        <div class="table-responsive">
+                            <table class="table table-condensed table-sm dynamic-form-table" data-form-list="{{ recipe_video_formset.prefix }}-prefix" id="recipe-video-table">
+                                <thead>
+                                <tr>
+                                    <th>Video</th>
+                                    <th>
+                                        <a class="float-right add-row" data-prefix="{{ recipe_video_formset.prefix }}" title="Add New {{ recipe_video_formset.0.video.label }}" data-toggle="tooltip" style="font-size: 1.5em;">
+                                            <i class="fas fa-plus-octagon text-primary"></i>
+                                        </a>
+                                        <table class="dynamic-form-row-template">
+                                            <tbody class="d-none">
+                                            <tr class="dynamic-form mb-3">
+                                                <td class="py-1">
+                                                    {% bootstrap_field recipe_video_formset.0.video show_label=False form_group_class="form-group my-1" %}
+                                                </td>
+                                                <td class="p-0">
+                                                    <a id="" href="javascript:void(0)" data-prefix="{{ recipe_video_formset.prefix }}" title="Remove Current {{ recipe_video_formset.0.video.label }}" data-toggle="tooltip" class="delete-row float-right mx-2">
+                                                        <i class="fas fa-minus-octagon text-danger"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody class="dynamic-form-tbody">
+                                    {% for recipe_video in recipe_video_formset %}
+                                        <tr id="{{ recipe_video.prefix }}-row" class="dynamic-form mb-3">
+                                            <td class="p-0 px-1">
+                                                {% if recipe_video.instance.video %}
+                                                    <a href="{{ recipe_video.instance.video.url }}" target="_blank">{{ recipe_video.instance.filename }}</a>
+                                                {% endif %}
+                                                {% bootstrap_field recipe_video.video show_label=False form_group_class="form-group my-1" %}
+                                            </td>
+                                            <td class="p-0">
+                                                <div class="d-none">
+                                                    {{ recipe_video.DELETE }}
+                                                    {% if recipe_video.instance.from_database %}
+                                                        {{ recipe_video.id }}
+                                                    {% endif %}
+                                                </div>
+                                                <a id="remove-{{ recipe_video.prefix }}-row" href="javascript:void(0)" data-prefix="{{ recipe_video_formset.prefix }}" title="Remove Current {{ recipe_video.video.label }}" data-toggle="tooltip" class="delete-row float-right mx-2">
+                                                    <i class="fas fa-minus-octagon text-danger"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group d-flex justify-content-end">
+                    <button type="submit" class="au-btn au-btn--submit au-btn--small">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal" tabindex="-1" role="dialog" id="overly-modal" data-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered justify-content-center" role="document">
+            <div class="spinner-border text-warning" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" style="overflow-y: scroll" id="nutrition-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="nutrition-title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="nutrition-body">
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script src="{% static 'core/js/dynamic-formset.js' %}"></script>
+    <script src="{% static 'core/vendor/select2/select2.min.js' %}"></script>
+    <script src="{% static 'core/js/bootstrap-autocomplete.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            $.each($("#recipe-ingredient-table tbody[class='dynamic-form-tbody'] tr td div input[data-type='ingredient']"), function (i, v) {
+                let id = $(v).attr("id");
+                console.log(id);
+                console.log(this);
+                {% comment %}$(`#${id}`).autoComplete({
+                    resolverSettings: {
+                        url: "{% url 'core:ingredient_autocomplete' %}"
+                    }
+                });{% endcomment %}
+
+                $(this).autoComplete({
+                    resolver: 'custom',
+                    events: {
+                        search: function (qry, callback) {
+                            // let's do a custom ajax call
+                            $.ajax(
+                                "{% url 'core:ingredient_autocomplete' %}",
+                                {
+                                    data: { 'qry': qry}
+                                }
+                            ).done(function (res) {
+                                callback(res.data)
+                            });
+                        }
+                    }
+                });
+            });
+
+            $('.btn-nutrition').click(function (e) {
+                e.preventDefault();
+                let keyword = $(`#id_${$(this).attr('data-id')}-ingredient`).val();
+                if (keyword.length > 1) {
+                    $('#overly-modal').modal();
+                    $.ajax("{% url 'core:ingredient_search' %}", {
+                        data: {'keyword': keyword},
+                        success: function (data) {
+                            $('#overly-modal').modal('hide');
+                            {#$('#nutrition-body').html()#}
+                            if (data.status === 0) {
+                                toastr.warning(data.msg);
+                            } else {
+                            $('#nutrition-modal').modal();
+                                $('#nutrition-body').html(data.html);
+                                $('#nutrition-title').html(data.name)
+                            }
+                        },
+                        error: function (error) {
+                            $('#overly-modal').modal('hide');
+                            toastr.warning("Something went wrong");
+                        }
+                    });
+                } else {
+                    toastr.warning("Enter ingredient name please");
+                }
+            })
+        });
+
+        function after_add(prefix_id) {
+            console.log(`#${prefix_id}-ingredient`);
+            $(`#${prefix_id}-ingredient`).autoComplete({
+                resolver: 'custom',
+                events: {
+                    search: function (qry, callback) {
+                        // let's do a custom ajax call
+                        console.log(qry);
+                        $.ajax(
+                            "{% url 'core:ingredient_autocomplete' %}",
+                            {
+                                data: { 'qry': qry}
+                            }
+                        ).done(function (res) {
+                            callback(res.data)
+                        });
+                    }
+                }
+            });
+            {% comment %}let ingredients = $(`tr#${row_id} input[data-type="ingredient"]`);
+            console.log('after-add : ', row_id);
+            console.log($(`tr#${row_id} input[data-type="ingredient"]`));
+            if (ingredients.length > 0) {
+                $(`tr#${row_id} input[data-type="ingredient"]`).autoComplete({
+                    resolver: 'custom',
+                    events: {
+                        search: function (qry, callback) {
+                            // let's do a custom ajax call
+                            $.ajax(
+                                "{% url 'core:ingredient_autocomplete' %}",
+                                {
+                                    data: { 'qry': qry}
+                                }
+                            ).done(function (res) {
+                                callback(res.data)
+                            });
+                        }
+                    }
+                });
+            }{% endcomment %}
+        }
+    </script>
+{% endblock %}

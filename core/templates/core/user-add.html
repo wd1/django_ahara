@@ -1,0 +1,95 @@
+{% extends 'core/base.html' %}
+{% load static bootstrap4 %}
+
+{% block custom_style %}
+    <link rel="stylesheet" href="{% static 'core/vendor/intl-tel-input/css/intlTelInput.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/mdi-font/css/material-design-iconic-font.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/select2/select2.min.css' %}">
+    <style>
+        .switch.switch-default .switch-label,
+        .switch.switch-default .switch-handle{
+            border-color: lightgray;
+        }
+        .switch.switch-default .switch-label {
+            background-color: lightgray;
+        }
+
+        .form-group .iti--allow-dropdown {
+            width: 100%;
+        }
+
+        .iti__selected-flag {
+            z-index: 10;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    {% if item %}
+        Edit User
+    {% else %}
+        Add New User
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-md-12 container">
+            <div class="row justify-content-between">
+                <h2>
+                    {% if item %}
+                        Edit User
+                    {% else %}
+                        Add New User
+                    {% endif %}
+                </h2>
+                <hr>
+                <a class="btn btn-secondary" href="{% url 'core:user_list' %}">Back</a>
+            </div>
+        </div>
+        <div class="col-md-12">
+            {% if form.errors %}
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <form id="user-form" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% bootstrap_field form.first_name %}
+                {% bootstrap_field form.last_name %}
+                {% bootstrap_field form.phone_number %}
+                {% bootstrap_field form.password1 %}
+                {% bootstrap_field form.password2 %}
+{#                <div class="form-group">#}
+{#                    <label for="id_phone_number">Phone number</label>#}
+{#                    <input type="tel" name="phone_number" maxlength="128" class="form-control" placeholder="Phone number" title="" id="id_phone_number">#}
+{#                </div>#}
+                {% bootstrap_field form.avatar_image %}
+                {% bootstrap_field form.is_chef %}
+                <div class="form-group d-flex justify-content-end">
+                    <button type="submit" class="au-btn au-btn--submit au-btn--small">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script src="{% static 'core/vendor/intl-tel-input/js/intlTelInput.js' %}"></script>
+    <script>
+        const phoneInputField = document.querySelector("#id_phone_number");
+        const phoneInput = window.intlTelInput(phoneInputField, {
+            preferredCountries: ["us", "ca"],
+            utilsScript: "{% static 'core/vendor/intl-tel-input/js/utils.js' %}"
+        });
+    </script>
+{% endblock %}

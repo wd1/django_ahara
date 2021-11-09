@@ -1,0 +1,160 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block custom_style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/mdi-font/css/material-design-iconic-font.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/select2/select2.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/toastr/toastr.css' %}" media="all">
+    <style>
+        .table-data__tool .table-data__tool-right > a {
+            margin-right: 12px;
+        }
+        .switch.switch-default .switch-label,
+        .switch.switch-default .switch-handle{
+            border-color: lightgray;
+        }
+        .switch.switch-default .switch-label {
+            background-color: lightgray;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}User View{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="form-group-col-md-12">
+            <h2>Users</h2>
+            <hr>
+        </div>
+        <div class="col-md-12">
+            <form method="get">
+                <div class="row">
+                    <div class="col-md-10 col-sm-10 mb-3 align-items-center form-group">
+                        <input type="text" class="form-control" placeholder="Search Users..." name="search" value="{{ search }}">
+                    </div>
+                    <div class="form-group col-md-2">
+                        <button type="submit" class="au-btn au-btn--submit au-input--full">Submit</button>
+                    </div>
+                </div>
+            </form>
+            <div class="course-data">
+                <div class="table-data__tool">
+                    <div class="table-data__tool-left"></div>
+                    <div class="table-data__tool-right">
+                        {% if request.user.is_superuser %}
+                            <a href="{% url 'core:user_add' %}" id="add-course-btn" class="au-btn au-btn-icon au-btn--green au-btn--small">Add User</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="table-responsive table-responsive-data2">
+                    <table id="course-table" class="table table-data2">
+                        <thead>
+                            <tr>
+                                {% comment %}<th>
+                                    <label class="au-checkbox">
+                                        <input type="checkbox" id="id-check-all">
+                                        <span class="au-checkmark"></span>
+                                    </label>
+                                </th>{% endcomment %}
+                                <th>User Name</th>
+                                <th>Phone Number</th>
+                                <th>Phone Verified</th>
+                                <th>Dietitian</th>
+                                {% if request.user.is_superuser %}
+                                    <th width="10"></th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for user in users %}
+                            <tr>
+                                <td>{{ user.fullname }}</td>
+                                <td>{{ user.phone_number }}</td>
+                                <td>{{ user.phone_verified }}</td>
+                                <td>{{ user.is_chef }}</td>
+                                {% if request.user.is_superuser %}
+                                    <td>
+                                        <div class="table-data-feature">
+                                            <a href="{% url 'core:user_edit' user.pk %}" class="item edit-course-btn" data-pk="{{ user.pk }}" data-toggle="tooltip" data-placement="top" title="Edit">
+                                                <i class="zmdi zmdi-edit"></i>
+                                            </a>
+                                            <button class="item delete-course-btn" data-pk="{{ user.pk }}" data-toggle="tooltip" data-placement="top" title="Delete">
+                                                <i class="zmdi zmdi-delete"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if users.has_other_pages %}
+                        <ul class="pagination d-flex justify-content-end  pb-4 pr-4">
+                        {% if users.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ users.previous_page_number }}">&laquo;</a></li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                        {% endif %}
+                        {% for i in users.paginator.page_range %}
+                            {% if users.number == i %}
+                                <li class="page-item active"><span class="page-link">{{ i }} <span class="sr-only">(current)</span></span></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if users.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ users.next_page_number }}">&raquo;</a></li>
+                        {% else %}
+                            <li class="disabled page-item"><span class="page-link">&raquo;</span></li>
+                        {% endif %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script src="{% static 'core/vendor/Bootstrap-Dialog/js/bootstrap-dialog.min.js' %}"></script>
+    <script src="{% static 'core/vendor/toastr/toastr.min.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            $(".delete-course-btn").click(function (e) {
+                var pk = this.getAttribute('data-pk');
+                var url = "{% url 'core:user_delete' 'aabbccdd' %}".replace('aabbccdd', pk);
+
+                BootstrapDialog.show({
+                    type: BootstrapDialog.TYPE_DARK,
+                    size: BootstrapDialog.SIZE_SMALL,
+                    title: '<h4 >Delete User</h4>',
+                    closable: false,
+                    message: 'Are you sure want to delete User',
+                    buttons: [{
+                        label: 'Cancel',
+                        action: function(dialog) {
+                            dialog.close();
+                        }}, {
+                        label: 'Delete',
+                        cssClass: 'btn-primary',
+                        action: function () {
+                            $.ajax({
+                                url: url,
+                            }).done(function(response) {
+                                if (response.status === 1) {
+                                    window.location.href = '';
+                                } else {
+                                    toastr.warning("Cannot delete this User")
+                                }
+                            })
+                        }
+                    }]
+                });
+            });
+
+            {% for message in messages %}
+                toastr.{{ message.tags }}("{{ message }}");
+            {% endfor %}
+        })
+    </script>
+{% endblock %}

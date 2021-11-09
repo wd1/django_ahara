@@ -1,0 +1,88 @@
+{% extends 'core/base.html' %}
+{% load static bootstrap4 %}
+
+{% block custom_style %}
+    <link rel="stylesheet" href="{% static 'core/vendor/intl-tel-input/css/intlTelInput.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/mdi-font/css/material-design-iconic-font.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/select2/select2.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css' %}">
+    <style>
+        .switch.switch-default .switch-label,
+        .switch.switch-default .switch-handle{
+            border-color: lightgray;
+        }
+        .switch.switch-default .switch-label {
+            background-color: lightgray;
+        }
+
+        .form-group .iti--allow-dropdown {
+            width: 100%;
+        }
+
+        .iti__selected-flag {
+            z-index: 10;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    {% if item %}
+        Edit Unboxing
+    {% else %}
+        Add New Unboxing
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-md-12">
+            <h2>
+                {% if item %}
+                    Edit Unboxing
+                {% else %}
+                    Add New Unboxing
+                {% endif %}
+            </h2>
+            <hr>
+        </div>
+        <div class="col-md-12">
+            {% if form.errors %}
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <form id="unboxing-form" method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                {% if form.instance.video %}
+                    <a href="{{ form.instance.video.url }}" target="_blank">{{ form.instance.filename }}</a>
+                {% endif %}
+                {% bootstrap_field form.video show_label=False %}
+                {% if request.user.is_superuser %}
+                    {% bootstrap_field form.is_current %}
+                {% endif %}
+
+                <div class="form-group d-flex justify-content-end">
+                    <button type="submit" class="au-btn au-btn--submit au-btn--small">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    {% comment %}<script src="{% static 'core/vendor/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            $("#id_timestamp").datetimepicker();
+        })
+    </script>{% endcomment %}
+{% endblock %}

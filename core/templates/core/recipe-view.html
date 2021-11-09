@@ -1,0 +1,228 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block custom_style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/mdi-font/css/material-design-iconic-font.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/select2/select2.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/toastr/toastr.css' %}" media="all">
+    <style>
+        .table-data__tool .table-data__tool-right > a {
+            margin-right: 12px;
+        }
+        .switch.switch-default .switch-label,
+        .switch.switch-default .switch-handle{
+            border-color: lightgray;
+        }
+        .switch.switch-default .switch-label {
+            background-color: lightgray;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    Recipe - {{ recipe.name }}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-md-12">
+            <h2>{{ recipe.name }}</h2>
+        </div>
+        <div class="col-md-12 container">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#recipe" role="tab" aria-controls="recipe" aria-selected="true">Recipe</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="profile-tab" data-toggle="tab" href="#ingredient" role="tab" aria-controls="ingredient" aria-selected="false">Ingredients</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="profile-tab" data-toggle="tab" href="#preparation" role="tab" aria-controls="preparation" aria-selected="false">Preparation</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="contact-tab" data-toggle="tab" href="#cook" role="tab" aria-controls="cook" aria-selected="false">Learn More</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="contact-tab" data-toggle="tab" href="#video" role="tab" aria-controls="video" aria-selected="false">Video</a>
+                </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="recipe" role="tabpanel" aria-labelledby="recipe-tab">
+                    <div class="table-responsive table-responsive-data2">
+                        <table id="recipe-table" class="table table-data2">
+                            <tr>
+                                <td>Chef</td>
+                                <td>{{ recipe.chef.fullname }}</td>
+                            </tr>
+                            <tr>
+                                <td>Recipe Name</td>
+                                <td>{{ recipe.name }}</td>
+                            </tr>
+                            <tr>
+                                <td>Category</td>
+                                <td>{{ recipe.category }}</td>
+                            </tr>
+                            <tr>
+                                <td>Description</td>
+                                <td>{{ recipe.description }}</td>
+                            </tr>
+                            <tr>
+                                <td>How many people it feed?</td>
+                                <td>{{ recipe.serving }}</td>
+                            </tr>
+                            {% comment %}<tr>
+                                <td>Calorie</td>
+                                <td>{{ recipe.calorie }}</td>
+                            </tr>{% endcomment %}
+                            <tr>
+                                <td>Prep Time</td>
+                                <td>{{ recipe.prep_time }}</td>
+                            </tr>
+                            <tr>
+                                <td>Cooking Time</td>
+                                <td>{{ recipe.cooking_time }}</td>
+                            </tr>
+                            <tr>
+                                <td>Approved</td>
+                                <td>{{ recipe.approved }}</td>
+                            </tr>
+                            <tr>
+                                <td>Unbox</td>
+                                <td>{{ recipe.unbox }}</td>
+                            </tr>
+                            <tr>
+                                <td>Image</td>
+                                <td><a href="{{ recipe.image.url }}">{{ recipe.image.name }}</a></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade show" id="ingredient" role="tabpanel" aria-labelledby="ingredient-tab">
+                    <div class="table-responsive table-responsive-data2">
+                        <table id="ingredient-table" class="table table-data2">
+                            <thead>
+                            <th>Ingredient</th>
+                            <th>Unit</th>
+                            <th>Nutrition</th>
+                            </thead>
+                            <tbody class="dynamic-form-tbody">
+                            {% for ingredient in recipe.recipe_ingredients.all %}
+                                <tr>
+                                    <td>{{ ingredient.ingredient }}</td>
+                                    <td>{{ ingredient.unit }}</td>
+                                    <td>
+                                        <div class="form-group my-1 ">
+                                            <button class="btn btn-info btn-nutrition" data-id="{{ ingredient.ingredient }}">View</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade show" id="preparation" role="tabpanel" aria-labelledby="preparation-tab">
+                    <div class="table-responsive table-responsive-data2">
+                        <table id="preparation-table" class="table table-data2">
+                            <tbody>
+                            {% for preparation in recipe.preparations.all %}
+                                <tr>
+                                    <td>
+                                        <textarea style="width: 100%;" readonly>{{ preparation.detail }}</textarea>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade show" id="cook" role="tabpanel" aria-labelledby="cook-tab">
+                    <div class="table-responsive table-responsive-data2">
+                        <table id="cook-table" class="table table-data2">
+                            <tbody>
+                            <tr>
+                                <td>Title</td>
+                                <td>{{ recipe.learn_more_title }}</td>
+                            </tr>
+                            <tr>
+                                <td>Description</td>
+                                <td>{{ recipe.learn_more_desc }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade show" id="video" role="tabpanel" aria-labelledby="video-tab">
+                    <div class="table-responsive table-responsive-data2">
+                        <table id="video-table" class="table table-data2">
+                            <tbody>
+                            {% for video in recipe.videos.all %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ video.video.url }}">{{ video.video }}</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" tabindex="-1" role="dialog" id="overly-modal" data-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered justify-content-center" role="document">
+            <div class="spinner-border text-warning" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" style="overflow-y: scroll" id="nutrition-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="nutrition-title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="nutrition-body">
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script>
+    $(document).ready(function () {
+        $('.btn-nutrition').click(function (e) {
+            e.preventDefault();
+            let keyword = $(this).attr('data-id');
+            if (keyword.length > 1) {
+                $('#overly-modal').modal();
+                $.ajax("{% url 'core:ingredient_search' %}", {
+                    data: {'keyword': keyword},
+                    success: function (data) {
+                        $('#overly-modal').modal('hide');
+                        {#$('#nutrition-body').html()#}
+                        if (data.status === 0) {
+                            toastr.warning(data.msg);
+                        } else {
+                        $('#nutrition-modal').modal();
+                            $('#nutrition-body').html(data.html);
+                            $('#nutrition-title').html(data.name)
+                        }
+                    },
+                    error: function (error) {
+                        $('#overly-modal').modal('hide');
+                        toastr.warning("Something went wrong");
+                    }
+                });
+            } else {
+                toastr.warning("Enter ingredient name please");
+            }
+        });
+    })
+    </script>
+{% endblock %}

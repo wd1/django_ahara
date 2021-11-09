@@ -1,0 +1,22 @@
+<table id="nutrition-list" class="table table-data2">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Average Amount</th>
+        <th>Unit</th>
+        <th>Derived Code</th>
+        <th>Deriv. By</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for nutrient in nutrients %}
+        <tr>
+            <td>{{ nutrient.nutrientName }}</td>
+            <td>{{ nutrient.value }}</td>
+            <td>{{ nutrient.unitName }}</td>
+            <td>{{ nutrient.derivationCode }}</td>
+            <td>{{ nutrient.derivationDescription }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

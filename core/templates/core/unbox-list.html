@@ -1,0 +1,141 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block custom_style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/mdi-font/css/material-design-iconic-font.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/select2/select2.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/toastr/toastr.css' %}" media="all">
+    <style>
+        .table-data__tool .table-data__tool-right > a {
+            margin-right: 12px;
+        }
+        .switch.switch-default .switch-label,
+        .switch.switch-default .switch-handle{
+            border-color: lightgray;
+        }
+        .switch.switch-default .switch-label {
+            background-color: lightgray;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    Unboxing List
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group-col-md-12">
+            <h2>Unboxing</h2>
+            <hr>
+        </div>
+        <div class="col-md-12">
+            <div class="course-data">
+                <div class="table-data__tool">
+                    <div class="table-data__tool-left"></div>
+                    <div class="table-data__tool-right">
+                        <a href="{% url 'core:unboxing_add' %}" id="add-course-btn" class="au-btn au-btn-icon au-btn--green au-btn--small">Add Unboxing</a>
+                    </div>
+                </div>
+                <div class="table-responsive table-responsive-data2">
+                    {% if unboxing_videos.start_index > 0 %}
+                        <table id="course-table" class="table table-data2">
+                            <thead>
+                                <tr>
+                                    <th>Video</th>
+                                    <th>Timestamp</th>
+                                    <th>Is This Week?</th>
+                                    <th width="10"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for unboxing_video in unboxing_videos %}
+                                <tr>
+                                    <td><a href="{{ unboxing_video.video.url }}" target="_blank">{{ unboxing_video.filename }}</a></td>
+                                    <td>{{ unboxing_video.timestamp }}</td>
+                                    <td>{{ unboxing_video.is_current }}</td>
+                                    <td>
+                                        <div class="table-data-feature">
+                                            <a href="{% url 'core:unboxing_edit' unboxing_video.pk %}" class="item edit-course-btn" data-pk="{{ unboxing_video.pk }}" data-toggle="tooltip" data-placement="top" title="Edit">
+                                                <i class="zmdi zmdi-edit"></i>
+                                            </a>
+                                            <button class="item delete-course-btn" data-pk="{{ unboxing_video.pk }}" data-toggle="tooltip" data-placement="top" title="Delete">
+                                                <i class="zmdi zmdi-delete"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                    {% if unboxing_videos.has_other_pages %}
+                        <ul class="pagination d-flex justify-content-end  pb-4 pr-4">
+                        {% if unboxing_videos.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ unboxing_videos.previous_page_number }}">&laquo;</a></li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                        {% endif %}
+                        {% for i in unboxing_videos.paginator.page_range %}
+                            {% if unboxing_videos.number == i %}
+                                <li class="page-item active"><span class="page-link">{{ i }} <span class="sr-only">(current)</span></span></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if unboxing_videos.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ unboxing_videos.next_page_number }}">&raquo;</a></li>
+                        {% else %}
+                            <li class="disabled page-item"><span class="page-link">&raquo;</span></li>
+                        {% endif %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script src="{% static 'core/vendor/Bootstrap-Dialog/js/bootstrap-dialog.min.js' %}"></script>
+    <script src="{% static 'core/vendor/toastr/toastr.min.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            $(".delete-course-btn").click(function (e) {
+                var pk = this.getAttribute('data-pk');
+                var url = "{% url 'core:unboxing_delete' 'aabbccdd' %}".replace('aabbccdd', pk);
+
+                BootstrapDialog.show({
+                    type: BootstrapDialog.TYPE_DARK,
+                    size: BootstrapDialog.SIZE_SMALL,
+                    title: '<h4 >Delete Unboxing</h4>',
+                    closable: false,
+                    message: 'Are you sure want to delete?',
+                    buttons: [{
+                        label: 'Cancel',
+                        action: function(dialog) {
+                            dialog.close();
+                        }}, {
+                        label: 'Delete',
+                        cssClass: 'btn-primary',
+                        action: function () {
+                            $.ajax({
+                                url: url,
+                            }).done(function(response) {
+                                if (response.status === 1) {
+                                    window.location.href = '';
+                                } else {
+                                    toastr.warning("Cannot delete this item")
+                                }
+                            })
+                        }
+                    }]
+                });
+            });
+
+            {% for message in messages %}
+                toastr.{{ message.tags }}("{{ message }}");
+            {% endfor %}
+        })
+    </script>
+{% endblock %}

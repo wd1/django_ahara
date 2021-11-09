@@ -1,0 +1,265 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block custom_style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/mdi-font/css/material-design-iconic-font.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/select2/select2.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/vendor/toastr/toastr.css' %}" media="all">
+    <style>
+        .table-data__tool .table-data__tool-right > a {
+            margin-right: 12px;
+        }
+        .switch.switch-default .switch-label,
+        .switch.switch-default .switch-handle{
+            border-color: lightgray;
+        }
+        .switch.switch-default .switch-label {
+            background-color: lightgray;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    Recipes
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-md-12">
+            <h2>Recipes</h2>
+            <hr>
+        </div>
+        <div class="col-md-12">
+            <form method="get">
+                <div class="row">
+                    <div class="col-md-4 col-sm-12 mb-3 align-items-center form-group">
+                        <input type="text" class="form-control" placeholder="Search Recipes..." name="search" value="{{ search }}">
+                    </div>
+                    <div class="form-group col-md-4 col-sm-6 col-xs-12">
+                        <select class="form-control" name="period">
+                            <option value="0" {% if period == 0 %}selected{% endif %}>All</option>
+                            <option value="1" {% if period == 1 %}selected{% endif %}>This week</option>
+                            <option value="2" {% if period == 2 %}selected{% endif %}>Past</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-4 col-sm-6 col-xs-12">
+                        <select class="form-control" name="category">
+                            <option value="">----Category----</option>
+                            <option value="Beverage" {% if category == 'Beverage' %}selected{% endif %}>Beverage</option>
+                            <option value="Soup" {% if category == 'Soup' %}selected{% endif %}>Soup</option>
+                            <option value="Salad" {% if category == 'Salad' %}selected{% endif %}>Salad</option>
+                            <option value="Main Dish" {% if category == 'Main Dish' %}selected{% endif %}>Main Dish</option>
+                            <option value="Side Dish" {% if category == 'Side Dish' %}selected{% endif %}>Side Dish</option>
+                        </select>
+                    </div>
+                    <div class="form-group offset-md-8 col-md-4 col-sm-12">
+                        <button type="submit" class="au-btn au-btn--submit au-input--full">Submit</button>
+                    </div>
+                </div>
+            </form>
+            <div class="course-data">
+                <div class="table-data__tool">
+                    <div class="table-data__tool-left"></div>
+                    <div class="table-data__tool-right">
+                        {% if request.user.is_chef %}
+                            <a href="{% url 'core:recipe_add' %}" id="add-course-btn" class="au-btn au-btn-icon au-btn--green au-btn--small">Add Recipe</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="table-responsive table-responsive-data2">
+                    {% if recipes.start_index > 0 %}
+                        <table id="course-table" class="table table-data2">
+                            <thead>
+                                <tr>
+                                    {% comment %}<th>
+                                        <label class="au-checkbox">
+                                            <input type="checkbox" id="id-check-all">
+                                            <span class="au-checkmark"></span>
+                                        </label>
+                                    </th>{% endcomment %}
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Approved</th>
+                                    <th>Is This Week?</th>
+                                    {% if request.user.is_chef %}
+                                        <th width="10"></th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for recipe in recipes %}
+                                <tr>
+                                    <td><a href="{% url 'core:recipe_detail' recipe.pk %}">{{ recipe.name }}</a></td>
+                                    <td>
+                                        {{ recipe.category }}
+                                    </td>
+                                    <td>
+                                        {% if request.user.is_superuser %}
+                                            <label class="switch switch-default switch-primary mr-2">
+                                                <input type="checkbox" class="switch-input switch-approve" data-pk="{{ recipe.pk }}" {% if recipe.approved %}checked{% endif %}>
+                                                <span class="switch-label"></span>
+                                                <span class="switch-handle"></span>
+                                            </label>
+                                        {% else %}
+                                            {{ recipe.approved }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if request.user.is_superuser %}
+                                            <label class="switch switch-default switch-primary mr-2">
+                                                <input type="checkbox" class="switch-input switch-unbox" data-pk="{{ recipe.pk }}" {% if recipe.is_this_week %}checked{% endif %}>
+                                                <span class="switch-label"></span>
+                                                <span class="switch-handle"></span>
+                                            </label>
+                                        {% else %}
+                                            {{ recipe.is_this_week }}
+                                        {% endif %}
+                                    </td>
+                                    {% if request.user.is_chef %}
+                                        <td>
+                                            <div class="table-data-feature">
+                                                <a href="{% url 'core:recipe_edit' recipe.pk %}" class="item edit-course-btn" data-pk="{{ recipe.pk }}" data-toggle="tooltip" data-placement="top" title="Edit">
+                                                    <i class="zmdi zmdi-edit"></i>
+                                                </a>
+                                                <button class="item delete-course-btn" data-pk="{{ recipe.pk }}" data-toggle="tooltip" data-placement="top" title="Delete">
+                                                    <i class="zmdi zmdi-delete"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                    {% if recipes.has_other_pages %}
+                        <ul class="pagination d-flex justify-content-end  pb-4 pr-4">
+                        {% if recipes.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ recipes.previous_page_number }}">&laquo;</a></li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                        {% endif %}
+                        {% for i in recipes.paginator.page_range %}
+                            {% if recipes.number == i %}
+                                <li class="page-item active"><span class="page-link">{{ i }} <span class="sr-only">(current)</span></span></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if recipes.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ recipes.next_page_number }}">&raquo;</a></li>
+                        {% else %}
+                            <li class="disabled page-item"><span class="page-link">&raquo;</span></li>
+                        {% endif %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script src="{% static 'core/vendor/Bootstrap-Dialog/js/bootstrap-dialog.min.js' %}"></script>
+    <script src="{% static 'core/vendor/toastr/toastr.min.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            const capitalize = (s) => {
+                if (typeof s !== 'string') return '';
+                return s.charAt(0).toUpperCase() + s.slice(1)
+            };
+
+            $(".delete-course-btn").click(function (e) {
+                var pk = this.getAttribute('data-pk');
+                var url = "{% url 'core:recipe_delete' 'aabbccdd' %}".replace('aabbccdd', pk);
+
+                BootstrapDialog.show({
+                    type: BootstrapDialog.TYPE_DARK,
+                    size: BootstrapDialog.SIZE_NORMAL,
+                    title: '<h4 >Delete Recipe</h4>',
+                    closable: false,
+                    message: 'Are you sure want to delete Recipe?',
+                    buttons: [{
+                        label: 'Cancel',
+                        action: function(dialog) {
+                            dialog.close();
+                        }}, {
+                        label: 'Delete',
+                        cssClass: 'btn-primary',
+                        action: function () {
+                            $.ajax({
+                                url: url,
+                            }).done(function(response) {
+                                if (response.status === 1) {
+                                    window.location.href = '';
+                                } else {
+                                    toastr.warning("Cannot delete this User")
+                                }
+                            })
+                        }
+                    }]
+                });
+            });
+
+            $(".switch-approve").change(function (e) {
+                var pk = this.getAttribute('data-pk');
+                var url = "{% url 'core:recipe_approve' 'aabbccdd' %}".replace('aabbccdd', pk);
+                var approved = this.checked;
+                $.ajax({
+                    url: url,
+                    method: 'post',
+                    data: {'approved': approved},
+                    beforeSend: function (xhr, settings) {
+                        let csrftoken = getCookie('csrftoken');
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    },
+                    success: function (resp) {
+                        if (resp.status === 1) {
+                            if (approved) {
+                                toastr.success(capitalize(resp.msg));
+                            } else {
+                                toastr.warning(capitalize(resp.msg));
+                            }
+                        } else {
+                            toastr.warning("Something went wrong");
+                        }
+                    }
+                })
+            });
+
+            $(".switch-unbox").change(function (e) {
+                var pk = this.getAttribute('data-pk');
+                var url = "{% url 'core:recipe_unbox' 'aabbccdd' %}".replace('aabbccdd', pk);
+                var unbox = this.checked;
+                $.ajax({
+                    url: url,
+                    method: 'post',
+                    data: {'unbox': unbox},
+                    beforeSend: function (xhr, settings) {
+                        let csrftoken = getCookie('csrftoken');
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    },
+                    success: function (resp) {
+                        if (resp.status === 1) {
+                            if (unbox) {
+                                toastr.success(capitalize(resp.msg));
+                            } else {
+                                toastr.warning(capitalize(resp.msg));
+                            }
+                        } else {
+                            toastr.warning("Something went wrong");
+                        }
+                    }
+                })
+            });
+
+            {% for message in messages %}
+                toastr.{{ message.tags }}("{{ message|title }}");
+            {% endfor %}
+        });
+    </script>
+{% endblock %}
